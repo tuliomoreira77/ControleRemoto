@@ -17,6 +17,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import io.github.controlwear.virtual.joystick.android.JoystickView;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,14 +30,69 @@ public class MainActivity extends AppCompatActivity {
     private Thread connection;
     private boolean control = false;
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new Thread(new connectionThread()).start();
 
-        Button frente = (Button)findViewById(R.id.frente);
+        JoystickView aceleracao = (JoystickView) findViewById(R.id.aceleracao);
+        aceleracao.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                if (control) {
+                    int value = (255*100)/strength;
+                    if (strength < 30) {
+                        String message = createMessage("STP",255);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                    if (angle > 60 && angle < 150) {
+                        String message = createMessage("FWD",value);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                    if (angle > 240 && angle < 300) {
+                        String message = createMessage("BWD",value);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                }
+            }
+        });
+
+        JoystickView direcao = (JoystickView) findViewById(R.id.curva);
+        direcao.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                if(control) {
+                    if (strength < 10) {
+                        String message = createMessage("CNT",0);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                    if (angle < 60 && angle > 0) {
+                        String message = createMessage("RGT",strength);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                    if (angle > 150 && angle < 240) {
+                        String message = createMessage("RGT",strength);
+                        out.print((char) 0x8);
+                        out.println(message);
+                        return;
+                    }
+                }
+            }
+        });
+
+        /*Button frente = (Button)findViewById(R.id.frente);
         Button re = (Button)findViewById(R.id.re);
         Button direita = (Button)findViewById(R.id.direita);
         Button esquerda = (Button)findViewById(R.id.esquerda);
@@ -134,9 +191,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return false;
             }
-        });
+        });*/
     }
 
+    String createMessage(String code,int value)
+    {
+        String message = code + "\n";
+        message = message + String.format("%03d",value);
+        return message;
+    }
 
     private class connectionThread extends Thread {
         public void run() {
