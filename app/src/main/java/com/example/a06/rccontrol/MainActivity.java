@@ -42,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onMove(int angle, int strength) {
                 if (control) {
-                    int value = (255*100)/strength;
-                    if (strength < 30) {
+
+                    int value = (255*strength)/100;
+                    if (strength < 10) {
                         String message = createMessage("STP",255);
                         out.print((char) 0x8);
                         out.println(message);
@@ -71,19 +72,19 @@ public class MainActivity extends AppCompatActivity {
             public void onMove(int angle, int strength) {
                 if(control) {
                     if (strength < 10) {
-                        String message = createMessage("CNT",0);
+                        String message = createMessage("CNT",255);
                         out.print((char) 0x8);
                         out.println(message);
                         return;
                     }
-                    if (angle < 60 && angle > 0) {
+                    if (angle < 80 || angle > 310) {
                         String message = createMessage("RGT",strength);
                         out.print((char) 0x8);
                         out.println(message);
                         return;
                     }
-                    if (angle > 150 && angle < 240) {
-                        String message = createMessage("RGT",strength);
+                    if (angle > 120 && angle < 270) {
+                        String message = createMessage("LFT",strength);
                         out.print((char) 0x8);
                         out.println(message);
                         return;
